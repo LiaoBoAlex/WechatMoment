@@ -9,10 +9,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.example.wechatmoment.R;
 import com.example.wechatmoment.bean.Moment;
 import com.example.wechatmoment.bean.User;
-import com.example.wechatmoment.webservice.GetUserAndPostResponse;
 
 import java.util.List;
 
@@ -61,7 +63,7 @@ public class MomentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_profile, parent, false);
                 return new ProfileHolder(view);
             case TYPE_MOMENT:
-                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_post_holder, parent, false);
+                view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_post, parent, false);
                 return new MomentHolder(view);
             default:
                 return null;
@@ -72,9 +74,30 @@ public class MomentAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
         switch (holder.getItemViewType()) {
             case TYPE_PROFILE:
-                ProfileHolder profileHolder = (ProfileHolder) holder;
+                final ProfileHolder profileHolder = (ProfileHolder) holder;
                 Glide.with(mContext).load(user.getAvatar()).into(profileHolder.ivAvatar);
-//                Glide.with(mContext).load(user.getProfileImage()).into(profileHolder.ivProfile);
+                //This allow the image be loaded only once, to prevent failure image keep reloading when user scrolling. this could be implement to all the
+                //imageview if required.
+                if(profileHolder.ivProfile.getTag()!="error") {
+                    Glide.with(mContext)
+                            .load(user.getProfileImage())
+                            .error(R.drawable.error)
+                            .placeholder(R.color.gray)
+                            .listener(new RequestListener<String, GlideDrawable>() {
+                                @Override
+                                public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                                    profileHolder.ivProfile.setTag("error");
+                                    return false;
+
+                                }
+
+                                @Override
+                                public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                                    return false;
+                                }
+                            })
+                            .into(profileHolder.ivProfile);
+                }
                 profileHolder.tvName.setText(user.getNick());
                 break;
             case TYPE_MOMENT:

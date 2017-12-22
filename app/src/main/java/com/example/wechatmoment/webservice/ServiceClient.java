@@ -2,7 +2,12 @@ package com.example.wechatmoment.webservice;
 
 
 import com.example.wechatmoment.Constants;
+import com.example.wechatmoment.bean.Comment;
+import com.example.wechatmoment.bean.Moment;
 import com.example.wechatmoment.bean.User;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.functions.Function;
@@ -37,8 +42,17 @@ public class ServiceClient {
                     public GetUserAndPostResponse apply(User user) throws Exception {
                         GetUserAndPostResponse response = new GetUserAndPostResponse();
                         response.setUser(user);
-                        response.setMomentList(
-                                webService.getUserTweet(Constants.SERVER_URL + userName + "/tweets").execute().body());
+                        List<Moment> resultMoment = webService.getUserTweet(Constants.SERVER_URL + userName + "/tweets").execute().body();
+                        List<Moment> momentList = new ArrayList<>();
+                        if(resultMoment!=null && resultMoment.size()>0){
+                            for(Moment m:resultMoment){
+                                if(m.getSender()!=null &&
+                                        ((m.getContent()!=null && !m.getContent().isEmpty()) || (m.getImages()!=null && m.getImages().size()>0))){
+                                    momentList.add(m);
+                                }
+                            }
+                        }
+                        response.setMomentList(momentList);
                         return response;
                     }
                 })
