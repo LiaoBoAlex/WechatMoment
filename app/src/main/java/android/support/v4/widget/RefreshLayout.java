@@ -111,6 +111,7 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
 
     private static final int CIRCLE_LEFT_OFFSET = 50;
 
+
     private View mTarget; // the target of the gesture
     OnRefreshListener mListener;
     boolean mRefreshing = false;
